@@ -47,7 +47,7 @@ export default function Projects() {
     const [cards, setCards] = useState(projectsData);
     const [expandedCard, setExpandedCard] = useState(null);
 
-    const cycleCard = () => {
+    const nextCard = () => {
         setCards((prev) => {
             const newCards = [...prev];
             const swipedCard = newCards.splice(newCards.length - 1, 1)[0];
@@ -56,11 +56,13 @@ export default function Projects() {
         });
     };
 
-    const handleDragEnd = (event, info, index) => {
-        const threshold = 80;
-        if (Math.abs(info.offset.x) > threshold) {
-            cycleCard();
-        }
+    const prevCard = () => {
+        setCards((prev) => {
+            const newCards = [...prev];
+            const firstCard = newCards.shift();
+            newCards.push(firstCard);
+            return newCards;
+        });
     };
 
     return (
@@ -74,7 +76,7 @@ export default function Projects() {
                 <p className="text-slate-400 text-base sm:text-lg max-w-xl mx-auto flex flex-col items-center gap-2">
                     <span>A selection of impactful projects I've architected and delivered.</span>
                     <span className="inline-flex items-center gap-2 text-purple-400 bg-purple-500/10 px-4 py-1.5 rounded-full text-sm font-semibold border border-purple-500/20">
-                        Swipe cards <span className="text-lg">↔️</span> or use arrows
+                        Use arrows to navigate
                         <MousePointerClick size={16} />
                     </span>
                 </p>
@@ -85,7 +87,7 @@ export default function Projects() {
 
                 {/* Left Arrow Button */}
                 <button
-                    onClick={cycleCard}
+                    onClick={prevCard}
                     className="absolute left-0 lg:-left-24 z-50 p-4 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 hover:bg-purple-500/20 hover:text-white transition-all hidden sm:flex items-center justify-center hover:scale-110 active:scale-95 shadow-[0_0_20px_rgba(168,85,247,0.1)] group"
                 >
                     <ChevronLeft size={36} className="group-hover:-translate-x-1 transition-transform" />
@@ -100,8 +102,7 @@ export default function Projects() {
                             return (
                                 <motion.div
                                     key={proj.title}
-                                    className={`absolute w-full h-full rounded-4xl cursor-grab active:cursor-grabbing border ${proj.border}`}
-                                    layer={i}
+                                    className={`absolute w-full h-full rounded-4xl border ${proj.border}`}
                                     style={{
                                         backgroundColor: proj.bg,
                                         boxShadow: isTop
@@ -119,12 +120,12 @@ export default function Projects() {
                                         opacity: 1 - indexFromTop * 0.2,
                                         rotateZ: indexFromTop === 0 ? 0 : (indexFromTop % 2 === 0 ? 2 : -2)
                                     }}
-                                    transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-                                    drag={isTop ? 'x' : false}
-                                    dragConstraints={{ left: 0, right: 0 }}
-                                    dragElastic={0.9}
-                                    onDragEnd={(e, info) => handleDragEnd(e, info, i)}
-                                    whileDrag={{ scale: 1.05, cursor: 'grabbing' }}
+                                    transition={{
+                                        type: 'spring',
+                                        stiffness: 300,
+                                        damping: 30,
+                                        opacity: { duration: 0.2 }
+                                    }}
                                     onClick={() => isTop && setExpandedCard(proj)}
                                 >
                                     {/* 3D Curved Card Content */}
@@ -151,9 +152,13 @@ export default function Projects() {
                                         {/* Bottom ambient colour glow */}
                                         <div className={`absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t ${proj.color} opacity-15 pointer-events-none`} style={{ borderRadius: '0 0 2rem 2rem' }}></div>
 
-                                        {/* Color glow blobs */}
-                                        <div className={`absolute -top-16 -right-16 w-48 h-48 blur-[80px] rounded-full bg-gradient-to-br ${proj.color} opacity-50 mix-blend-screen`}></div>
-                                        <div className={`absolute -bottom-16 -left-16 w-48 h-48 blur-[80px] rounded-full bg-gradient-to-br ${proj.color} opacity-50 mix-blend-screen`}></div>
+                                        {/* Color glow blobs - Only render for top card for performance */}
+                                        {isTop && (
+                                            <>
+                                                <div className={`absolute -top-16 -right-16 w-48 h-48 blur-[80px] rounded-full bg-gradient-to-br ${proj.color} opacity-40 mix-blend-screen`}></div>
+                                                <div className={`absolute -bottom-16 -left-16 w-48 h-48 blur-[80px] rounded-full bg-gradient-to-br ${proj.color} opacity-40 mix-blend-screen`}></div>
+                                            </>
+                                        )}
 
                                         <div className="w-24 h-24 rounded-2xl bg-[#0a0118]/80 border border-white/10 flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.1)] relative z-10 backdrop-blur-sm">
                                             {proj.icon}
@@ -182,7 +187,7 @@ export default function Projects() {
 
                 {/* Right Arrow Button */}
                 <button
-                    onClick={cycleCard}
+                    onClick={nextCard}
                     className="absolute right-0 lg:-right-24 z-50 p-4 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 hover:bg-purple-500/20 hover:text-white transition-all hidden sm:flex items-center justify-center hover:scale-110 active:scale-95 shadow-[0_0_20px_rgba(168,85,247,0.1)] group"
                 >
                     <ChevronRight size={36} className="group-hover:translate-x-1 transition-transform" />
@@ -191,13 +196,13 @@ export default function Projects() {
                 {/* Mobile Navigation Bar */}
                 <div className="absolute -bottom-16 left-0 right-0 flex justify-center gap-12 sm:hidden px-4 z-50">
                     <button
-                        onClick={cycleCard}
+                        onClick={prevCard}
                         className="p-5 rounded-full bg-purple-500/10 border-2 border-purple-500/20 text-purple-400 active:bg-purple-500/30 active:scale-90 transition-all shadow-[0_0_15px_rgba(168,85,247,0.1)]"
                     >
                         <ChevronLeft size={32} />
                     </button>
                     <button
-                        onClick={cycleCard}
+                        onClick={nextCard}
                         className="p-5 rounded-full bg-purple-500/10 border-2 border-purple-500/20 text-purple-400 active:bg-purple-500/30 active:scale-90 transition-all shadow-[0_0_15px_rgba(168,85,247,0.1)]"
                     >
                         <ChevronRight size={32} />
